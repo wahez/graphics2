@@ -155,6 +155,10 @@ private:
 class path_t : public path_base_t
 {
 public:
+    path_t() = default;
+    path_t(path_t&&) = default;
+    path_t& operator=(path_t&&) = default;
+
     template<typename Path>
     explicit path_t(Path path)
     {
@@ -162,6 +166,13 @@ public:
     }
 
     bool is_empty() const { return _parts.empty(); }
+
+    template<typename Path>
+    std::enable_if_t<std::is_base_of<path_base_t, std::decay_t<Path>>::value, path_t&> operator+=(Path&& path)
+    {
+        _parts.emplace_back(new std::decay_t<Path>(std::forward<Path>(path)));
+        return *this;
+    }
 
 private:
     // deprecated

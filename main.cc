@@ -13,7 +13,7 @@ int main()
 
     surface.fill(color_t(0.86, 0.85, 0.47));
     auto rectangle = rectangle_t(0, 0, width, height);
-    pen_t rect_pen(20);
+    auto rect_pen = pen_t(20);
     surface.stroke(rect_pen, rectangle);
 
     auto black = color_t(0, 0, 0, 0.7);
@@ -23,7 +23,7 @@ int main()
         height / 4.0,
         0.0,
         2.0 * M_PI);
-    pen_t circ_pen(black, 20);
+    auto circ_pen = pen_t(black, 20);
     surface.stroke(circ_pen, circle);
 
     auto line = line_t(
