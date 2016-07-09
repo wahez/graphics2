@@ -1,10 +1,3 @@
-/* M_PI is defined in math.h in the case of Microsoft Visual C++, Solaris,
- * et. al.
- */
-#if defined(_MSC_VER)
-#define _USE_MATH_DEFINES
-#endif
-
 #include <string>
 #include <iostream>
 #include <cairommconfig.h>
@@ -13,22 +6,73 @@
 
 #include <cmath>
 
+
+namespace graphics2
+{
+
+
+class surface_t
+{
+public:
+    surface_t(const std::string& filename, double width, double height)
+        : _surface(Cairo::SvgSurface::create(filename, width, height))
+    {}
+
+    surface_t(Cairo::RefPtr<Cairo::Surface> surface)
+        : _surface(std::move(surface))
+    {}
+
+    Cairo::Surface* operator->() { return _surface.operator->(); }
+    operator Cairo::RefPtr<Cairo::Surface>() { return _surface; }
+
+private:
+    Cairo::RefPtr<Cairo::Surface> _surface;
+};
+
+
+class color_t
+{
+public:
+    constexpr color_t(double red, double green, double blue)
+        : _red(red)
+        , _green(green)
+        , _blue(blue)
+    {}
+
+    constexpr double red() const { return _red; }
+    constexpr double green() const { return _green; }
+    constexpr double blue() const { return _blue; }
+
+private:
+    double _red;
+    double _green;
+    double _blue;
+};
+
+
+void fill(surface_t& surface, const color_t& color)
+{
+    auto cr = Cairo::Context::create(surface);
+    cr->set_source_rgb(color.red(), color.green(), color.blue());
+    cr->paint();
+}
+
+
+}
+
+
 int main()
 {
-#ifdef CAIRO_HAS_SVG_SURFACE
-
     std::string filename = "image.svg";
     double width = 600;
     double height = 400;
     auto surface =
         Cairo::SvgSurface::create(filename, width, height);
 
-    auto cr = Cairo::Context::create(surface);
+    graphics2::surface_t surf(surface);
+    graphics2::fill(surf, graphics2::color_t(0.86, 0.85, 0.47));
 
-    cr->save(); // save the state of the context
-    cr->set_source_rgb(0.86, 0.85, 0.47);
-    cr->paint();    // fill image with the color
-    cr->restore();  // color is back to black now
+    auto cr = Cairo::Context::create(surface);
 
     cr->save();
     // draw a border around the image
@@ -52,12 +96,4 @@ int main()
 
     std::cout << "Wrote SVG file \"" << filename << "\"" << std::endl;
     return 0;
-
-#else
-
-    std::cout << "You must compile cairo with SVG support for this example to work."
-        << std::endl;
-    return 1;
-
-#endif
 }
