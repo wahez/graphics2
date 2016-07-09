@@ -21,16 +21,39 @@ template<int BITS> using uint_at_least_t = typename uint_at_least<BITS>::type;
 
 
 template<typename TYPE, TYPE MIN, TYPE MAX>
+class numeric_range_t
+{
+public:
+    using range_type = TYPE;
+
+    constexpr range_type min() const { return MIN; }
+    constexpr range_type max() const { return MAX; }
+
+    template<typename T>
+    constexpr bool is_valid(const T& t) const { return t >= min() && t <= max(); }
+};
+
+
+template<typename TYPE>
 class numeric_range
 {
 public:
     using range_type = TYPE;
 
-    constexpr TYPE min() const { return MIN; }
-    constexpr TYPE max() const { return MAX; }
+    numeric_range(range_type min, range_type max)
+        : _min(std::move(min))
+        , _max(std::move(max))
+    {}
+
+    constexpr range_type min() const { return _min; }
+    constexpr range_type max() const { return _max; }
 
     template<typename T>
     constexpr bool is_valid(const T& t) const { return t >= min() && t <= max(); }
+
+private:
+    range_type _min;
+    range_type _max;
 };
 
 
@@ -74,10 +97,10 @@ std::ostream& operator<<(std::ostream& os, const value_in_range<Args...>& value_
 }
 
 
-using channel = value_in_range<double, numeric_range<std::int8_t, 0, 1>>;
+using channel = value_in_range<double, numeric_range_t<std::int8_t, 0, 1>>;
 
 template<int BITS>
-using channel_bits = value_in_range<uint_at_least_t<BITS>, numeric_range<uint_at_least_t<BITS>, 0, (1<<BITS)-1>>;
+using channel_bits = value_in_range<uint_at_least_t<BITS>, numeric_range_t<uint_at_least_t<BITS>, 0, (1<<BITS)-1>>;
 
 
 template<typename RCHANNEL, typename GCHANNEL, typename BCHANNEL, typename ALPHACHANNEL>
@@ -163,16 +186,46 @@ template<int RB, int GB, int BB, int AB>
 using color_bits = color_t<channel_bits<RB>, channel_bits<GB>, channel_bits<BB>, channel_bits<AB>>;
 
 
-template<typename TYPE>
+/*
+template<typename XTYPE, typename YTYPE>
 class position_t
 {
 public:
-    TYPE x;
-    TYPE y;
+    using x_range_type = XTYPE;
+    using y_range_type = YTYPE;
+    using typename x_type = x_range_type::type;
+    using typename y_type = y_range_type::type;
+
+    constexpr x_type x() const { return _x.value(); }
+    constexpr x_range_type x_range() const { return _x; }
+    constexpr y_type y() const { return _y.value(); }
+    constexpr y_range_type y_range() const { return _y; }
+    constexpr void x() { _x.value(); }
+    constexpr void x_range() { _x; }
+    constexpr void y() { _y.value(); }
+    constexpr void y_range() { _y; }
+
+
+public:
+    friend class surface;
+    constexpr position_t(x_type x, y_type y)
+        : _x(std::move(x))
+        , _y(std::move(y))
+    {}
+
+    x_range_type _x;
+    y_range_type _y;
 };
 
 
-/*
+class surface
+{
+    constexpr position create_position(x_type x, y_type y) const;
+};
+
+
+
+
 template<typename COLOR>
 class surface_t
 {
@@ -254,7 +307,7 @@ int p() { return r; }
 void test_channel()
 {
     constexpr graphics2::channel colorChannel{0.5};
-    constexpr graphics2::value_in_range<int, graphics2::numeric_range<int, 0, 10>> intColorChannel{5};
+    constexpr graphics2::value_in_range<int, graphics2::numeric_range_t<int, 0, 10>> intColorChannel{5};
     p<int, intColorChannel.value()>();
 }
 
