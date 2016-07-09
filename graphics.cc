@@ -34,14 +34,14 @@ public:
 };
 
 
-template<typename TYPE, typename CHANNELRANGE>
-class channel_t: public CHANNELRANGE
+template<typename TYPE, typename RANGE>
+class value_in_range: public RANGE
 {
 public:
     using type = TYPE;
-    using range = CHANNELRANGE;
+    using range = RANGE;
 
-    explicit constexpr channel_t(type value)
+    explicit constexpr value_in_range(type value)
         : _value(std::move(value))
     {
     }
@@ -50,14 +50,15 @@ public:
     constexpr void value(type val) { _value = std::move(val); }
 
     template<typename...ARGS>
-    explicit constexpr channel_t(const channel_t<ARGS...>& ochan)
-        : _value(unscaled(ochan.scaled()))
+    explicit constexpr value_in_range(const value_in_range<ARGS...>& ovalue)
+        : _value(unscaled(ovalue.scaled()))
     {}
 
     constexpr bool is_valid() const { return range::is_valid(value()); }
 
 private:
-    template<typename, typename> friend class channel_t;
+    template<typename, typename> friend class value_in_range;
+    // scales to double between 0 and 1
     constexpr double scaled() const { return (1.0*value() - range::min()) / (range::max() - range::min()); }
     constexpr TYPE unscaled(double d) const { return d * (range::max() - range::min()) + range::min(); }
 
@@ -66,17 +67,17 @@ private:
 
 
 template<typename... Args>
-std::ostream& operator<<(std::ostream& os, const channel_t<Args...>& channel)
+std::ostream& operator<<(std::ostream& os, const value_in_range<Args...>& value_in_range)
 {
-    os << channel.value();
+    os << value_in_range.value();
     return os;
 }
 
 
-using channel = channel_t<double, numeric_range<std::int8_t, 0, 1>>;
+using channel = value_in_range<double, numeric_range<std::int8_t, 0, 1>>;
 
 template<int BITS>
-using channel_bits = channel_t<uint_at_least_t<BITS>, numeric_range<uint_at_least_t<BITS>, 0, (1<<BITS)-1>>;
+using channel_bits = value_in_range<uint_at_least_t<BITS>, numeric_range<uint_at_least_t<BITS>, 0, (1<<BITS)-1>>;
 
 
 template<typename RCHANNEL, typename GCHANNEL, typename BCHANNEL, typename ALPHACHANNEL>
@@ -253,7 +254,7 @@ int p() { return r; }
 void test_channel()
 {
     constexpr graphics2::channel colorChannel{0.5};
-    constexpr graphics2::channel_t<int, graphics2::numeric_range<int, 0, 10>> intColorChannel{5};
+    constexpr graphics2::value_in_range<int, graphics2::numeric_range<int, 0, 10>> intColorChannel{5};
     p<int, intColorChannel.value()>();
 }
 
