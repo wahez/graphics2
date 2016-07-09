@@ -5,51 +5,91 @@
 #include <cairomm/surface.h>
 
 
-namespace graphics2
-{
+namespace graphics2 {
 
 
-class surface_t
-{
-public:
-    virtual ~surface_t() {}
-    double width() const { return cairo_image_surface_get_width(_surface->cobj()); }
-    double height() const { return cairo_image_surface_get_height(_surface->cobj()); }
-    void show_page() { _surface->show_page(); }
+namespace detail {
 
-    void fill(const color_t& color)
+
+    struct surface_t
     {
-        auto cr = Cairo::Context::create(_surface);
-        cr->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
-        cr->paint();
-    }
+        Cairo::RefPtr<Cairo::Surface> surface;
+        Cairo::Surface* operator->() { return surface.operator->(); }
+    };
 
-    void stroke(const pen_t& pen, const path_base_t& path)
+
+    struct context_t
     {
-        auto cr = Cairo::Context::create(_surface);
-        const auto& color = pen.color();
-        cr->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
-        cr->set_line_width(pen.width());
-        path.write_to_context(*(cr.operator->()));
-        cr->stroke();
-    }
+        explicit context_t(const surface_t& surface)
+            : context(Cairo::Context::create(surface.surface))
+        {}
 
-protected:
-    explicit surface_t(Cairo::RefPtr<Cairo::Surface> surface)
-        : _surface(std::move(surface))
-    {}
-
-    Cairo::RefPtr<Cairo::Surface> _surface;
-};
+        Cairo::RefPtr<Cairo::Context> context;
+        Cairo::Context* operator->() { return context.operator->(); }
+    };
 
 
-class svg_surface_t: public surface_t
+}
+
+
+surface_t::~surface_t()
+{}
+
+
+void surface_t::show_page()
 {
-public:
-    svg_surface_t(const std::string& filename, double width, double height)
-        : surface_t(Cairo::SvgSurface::create(filename, width, height))
-    {}
-};
+    (*_surface)->show_page();
+}
+
+
+void surface_t::fill(const color_t& color)
+{
+    detail::context_t context(*_surface);
+    context->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
+    context->paint();
+}
+
+
+void surface_t::stroke(const pen_t& pen, const path_base_t& path)
+{
+    detail::context_t context(*_surface);
+    const auto& color = pen.color();
+    context->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
+    context->set_line_width(pen.width());
+    path.write_to_context(context);
+    context->stroke();
+}
+
+
+surface_t::surface_t(detail::surface_t surface)
+    : _surface(new detail::surface_t(std::move(surface)))
+{
+}
+
+
+svg_surface_t::svg_surface_t(const std::string& filename, double width, double height)
+    : surface_t(detail::surface_t{Cairo::SvgSurface::create(filename, width, height)})
+{
+}
+
+
+void line_t::write_to_context(detail::context_t &context) const
+{
+    context->move_to(_x1, _y1);
+    context->line_to(_x2, _y2);
+}
+
+
+void rectangle_t::write_to_context(detail::context_t& context) const
+{
+    context->rectangle(_x1, _y1, _x2, _y2);
+}
+
+
+void arc_t::write_to_context(detail::context_t& context) const
+{
+    context->arc(_x, _y, _radius, _angle_start, _angle_stop);
+}
 
 
 }

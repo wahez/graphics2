@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 project(graphics2)
 
 add_definitions(-std=c++14)
-add_executable(graphics2 graphics.cc)
+add_executable(graphics2
+    graphics.h
+    graphics.cc
+    main.cc
+)
+
 target_include_directories(graphics2 PRIVATE
     /usr/include/cairomm-1.0
     /usr/lib/x86_64-linux-gnu/cairomm-1.0/include

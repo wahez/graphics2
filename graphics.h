@@ -3,15 +3,13 @@
 #include <memory>
 
 
-//namespace Cairo {
-//    class Context;
-//    class Surface;
-//    template<typename> class RefPtr;
-//}
+namespace graphics2 {
 
 
-namespace graphics2
-{
+namespace detail {
+    struct context_t;
+    struct surface_t;
+}
 
 
 class color_t
@@ -66,7 +64,7 @@ public:
 private:
     friend class path_t;
     friend class surface_t;
-    virtual void write_to_context(Cairo::Context&) const = 0;
+    virtual void write_to_context(detail::context_t&) const = 0;
 };
 
 
@@ -74,16 +72,14 @@ class surface_t
 {
 public:
     virtual ~surface_t();
-    double width() const;
-    double height() const;
     void show_page();
 
     void fill(const color_t& color);
     void stroke(const pen_t& pen, const path_base_t& path);
 
 protected:
-    explicit surface_t(Cairo::RefPtr<Cairo::Surface> surface);
-    Cairo::RefPtr<Cairo::Surface> _surface;
+    explicit surface_t(detail::surface_t surface);
+    std::unique_ptr<detail::surface_t> _surface;
 };
 
 
@@ -94,10 +90,10 @@ public:
 };
 
 
-class line: public path_base_t
+class line_t: public path_base_t
 {
 public:
-    line(double x1, double y1, double x2, double y2)
+    line_t(double x1, double y1, double x2, double y2)
         : _x1(x1)
         , _x2(x2)
         , _y1(y1)
@@ -105,11 +101,7 @@ public:
     {}
 
 private:
-    void write_to_context(Cairo::Context& context) const override
-    {
-        context.move_to(_x1, _y1);
-        context.line_to(_x2, _y2);
-    }
+    void write_to_context(detail::context_t& context) const override;
 
     double _x1;
     double _x2;
@@ -118,10 +110,10 @@ private:
 };
 
 
-class rectangle: public path_base_t
+class rectangle_t: public path_base_t
 {
 public:
-    rectangle(double x1, double y1, double x2, double y2)
+    rectangle_t(double x1, double y1, double x2, double y2)
         : _x1(x1)
         , _x2(x2)
         , _y1(y1)
@@ -129,10 +121,7 @@ public:
     {}
 
 private:
-    void write_to_context(Cairo::Context& context) const override
-    {
-        context.rectangle(_x1, _y1, _x2, _y2);
-    }
+    void write_to_context(detail::context_t& context) const override;
 
     double _x1;
     double _x2;
@@ -141,10 +130,10 @@ private:
 };
 
 
-class arc: public path_base_t
+class arc_t: public path_base_t
 {
 public:
-    arc(double x, double y, double radius, double angle_start, double angle_stop)
+    arc_t(double x, double y, double radius, double angle_start, double angle_stop)
         : _x(x)
         , _y(y)
         , _radius(radius)
@@ -153,10 +142,7 @@ public:
     {}
 
 private:
-    void write_to_context(Cairo::Context& context) const override
-    {
-        context.arc(_x, _y, _radius, _angle_start, _angle_stop);
-    }
+    void write_to_context(detail::context_t& context) const override;
 
     double _x;
     double _y;
@@ -179,7 +165,7 @@ public:
 
 private:
     // deprecated
-    void write_to_context(Cairo::Context& context) const
+    void write_to_context(detail::context_t& context) const
     {
         for (const auto& part: _parts)
         {
