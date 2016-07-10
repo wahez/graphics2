@@ -1,3 +1,4 @@
+#include <cairomm/enums.h>
 #include <string>
 #include <vector>
 #include <memory>
@@ -10,6 +11,9 @@ namespace detail {
     struct context_t;
     struct surface_t;
 }
+
+
+using Format = Cairo::Format;
 
 
 class color_t
@@ -80,6 +84,14 @@ public:
 protected:
     explicit surface_t(detail::surface_t surface);
     std::unique_ptr<detail::surface_t> _surface;
+};
+
+
+class image_surface_t: public surface_t
+{
+public:
+    image_surface_t(Format format, double width, double height);
+    void write_to_png(const std::string& filename);
 };
 
 

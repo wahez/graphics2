@@ -6,7 +6,9 @@ add_definitions(-std=c++17)
 add_executable(graphics2
     graphics.h
     graphics.cc
+    image.cc
     main.cc
+    svg.cc
 )
 
 target_include_directories(graphics2 PRIVATE

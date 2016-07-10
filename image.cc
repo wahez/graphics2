@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-int main()
+void image()
 {
     using namespace graphics2;
 

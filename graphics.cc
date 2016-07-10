@@ -67,6 +67,18 @@ surface_t::surface_t(detail::surface_t surface)
 }
 
 
+image_surface_t::image_surface_t(Format format, double width, double height)
+    : surface_t(detail::surface_t{Cairo::ImageSurface::create(format, width, height)})
+{
+}
+
+
+void image_surface_t::write_to_png(const std::string& filename)
+{
+    dynamic_cast<Cairo::ImageSurface&>(*_surface->surface.operator->()).write_to_png(filename);
+}
+
+
 svg_surface_t::svg_surface_t(const std::string& filename, double width, double height)
     : surface_t(detail::surface_t{Cairo::SvgSurface::create(filename, width, height)})
 {
