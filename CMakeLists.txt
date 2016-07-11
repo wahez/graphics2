@@ -9,6 +9,7 @@ add_executable(graphics2
     image.cc
     main.cc
     svg.cc
+    text.cc
 )
 
 target_include_directories(graphics2 PRIVATE
