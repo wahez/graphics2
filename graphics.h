@@ -39,6 +39,25 @@ private:
 };
 
 
+class pos_t
+{
+public:
+    constexpr pos_t(double x, double y)
+        : _x(x)
+        , _y(y)
+    {}
+
+    constexpr double x() const { return _x; }
+    constexpr double y() const { return _y; }
+    constexpr void x(double x) { _x = x; }
+    constexpr void y(double y) { _y = y; }
+
+private:
+    double _x;
+    double _y;
+};
+
+
 class pen_t
 {
 public:
@@ -72,17 +91,38 @@ private:
 };
 
 
+class font_face_t
+{
+public:
+};
+
+
+class toy_font_face_t
+{
+public:
+};
+
+
+class font_t
+{
+public:
+    font_t(font_face_t, color_t, double size);
+};
+
+
 class surface_t
 {
 public:
     virtual ~surface_t();
     void show_page();
 
-    void fill(const color_t& color);
-    void stroke(const pen_t& pen, const path_base_t& path);
+    void fill(const color_t&);
+    void fill(const color_t&, const path_base_t&);
+    void stroke(const pen_t&, const path_base_t&);
+    void print(const font_t&, const pos_t&, const std::string&);
 
 protected:
-    explicit surface_t(detail::surface_t surface);
+    explicit surface_t(detail::surface_t);
     std::unique_ptr<detail::surface_t> _surface;
 };
 
@@ -90,7 +130,7 @@ protected:
 class image_surface_t: public surface_t
 {
 public:
-    image_surface_t(Format format, double width, double height);
+    image_surface_t(Format, double width, double height);
     void write_to_png(const std::string& filename);
 };
 
@@ -105,59 +145,49 @@ public:
 class line_t: public path_base_t
 {
 public:
-    line_t(double x1, double y1, double x2, double y2)
-        : _x1(x1)
-        , _x2(x2)
-        , _y1(y1)
-        , _y2(y2)
+    line_t(pos_t start, pos_t end)
+        : _start(start)
+        , _end(end)
     {}
 
 private:
-    void write_to_context(detail::context_t& context) const override;
+    void write_to_context(detail::context_t&) const override;
 
-    double _x1;
-    double _x2;
-    double _y1;
-    double _y2;
+    pos_t _start;
+    pos_t _end;
 };
 
 
 class rectangle_t: public path_base_t
 {
 public:
-    rectangle_t(double x1, double y1, double x2, double y2)
-        : _x1(x1)
-        , _x2(x2)
-        , _y1(y1)
-        , _y2(y2)
+    rectangle_t(pos_t corner1, pos_t corner2)
+        : _corner1(corner1)
+        , _corner2(corner2)
     {}
 
 private:
-    void write_to_context(detail::context_t& context) const override;
+    void write_to_context(detail::context_t&) const override;
 
-    double _x1;
-    double _x2;
-    double _y1;
-    double _y2;
+    pos_t _corner1;
+    pos_t _corner2;
 };
 
 
 class arc_t: public path_base_t
 {
 public:
-    arc_t(double x, double y, double radius, double angle_start, double angle_stop)
-        : _x(x)
-        , _y(y)
+    arc_t(pos_t center, double radius, double angle_start, double angle_stop)
+        : _center(center)
         , _radius(radius)
         , _angle_start(angle_start)
         , _angle_stop(angle_stop)
     {}
 
 private:
-    void write_to_context(detail::context_t& context) const override;
+    void write_to_context(detail::context_t&) const override;
 
-    double _x;
-    double _y;
+    pos_t _center;
     double _radius;
     double _angle_start;
     double _angle_stop;

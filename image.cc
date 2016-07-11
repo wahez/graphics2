@@ -13,14 +13,13 @@ void image()
 
     surface.fill(color_t(0.86, 0.85, 0.47));
 
-    surface.stroke(pen_t(20), rectangle_t(0, 0, width, height));
+    surface.stroke(pen_t(20), rectangle_t(pos_t(0, 0), pos_t(width, height)));
 
     auto pen = pen_t(color_t(0, 0, 0, 0.7), 20);
     surface.stroke(
         pen,
         arc_t(
-            width/2,
-            height/2,
+            pos_t(width/2, height/2),
             height/4,
             0,
             2*M_PI));
@@ -28,10 +27,8 @@ void image()
     surface.stroke(
         pen,
         line_t(
-            width / 4.0,
-            height / 4.0,
-            width * 3.0 / 4.0,
-            height * 3.0 / 4.0));
+            pos_t(width / 4.0, height / 4.0),
+            pos_t(width * 3.0 / 4.0, height * 3.0 / 4.0)));
 
     std::string filename = "image.png";
     surface.write_to_png(filename);

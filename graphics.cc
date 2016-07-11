@@ -50,6 +50,15 @@ void surface_t::fill(const color_t& color)
 }
 
 
+void surface_t::fill(const color_t& color, const path_base_t& path)
+{
+    detail::context_t context(*_surface);
+    path.write_to_context(context);
+    context->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
+    context->fill();
+}
+
+
 void surface_t::stroke(const pen_t& pen, const path_base_t& path)
 {
     detail::context_t context(*_surface);
@@ -59,6 +68,19 @@ void surface_t::stroke(const pen_t& pen, const path_base_t& path)
     path.write_to_context(context);
     context->stroke();
 }
+
+
+/*
+void surface_t::print(const font_t& font, const pos_t& pos, const std::string& text)
+{
+    detail::context_t context(*_surface);
+    context->move_t(pos.x(), pos.y());
+    const auto& color = font.color();
+    context->set_source_rgba(color().red(), color().green(), color().blue(), color().alpha());
+    font.set_to_context(context);
+    context->show_text(text);
+}
+*/
 
 
 surface_t::surface_t(detail::surface_t surface)
@@ -87,20 +109,20 @@ svg_surface_t::svg_surface_t(const std::string& filename, double width, double h
 
 void line_t::write_to_context(detail::context_t &context) const
 {
-    context->move_to(_x1, _y1);
-    context->line_to(_x2, _y2);
+    context->move_to(_start.x(), _start.y());
+    context->line_to(_end.x(), _end.y());
 }
 
 
 void rectangle_t::write_to_context(detail::context_t& context) const
 {
-    context->rectangle(_x1, _y1, _x2, _y2);
+    context->rectangle(_corner1.x(), _corner1.y(), _corner2.x(), _corner2.y());
 }
 
 
 void arc_t::write_to_context(detail::context_t& context) const
 {
-    context->arc(_x, _y, _radius, _angle_start, _angle_stop);
+    context->arc(_center.x(), _center.y(), _radius, _angle_start, _angle_stop);
 }
 
 
