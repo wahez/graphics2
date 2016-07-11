@@ -87,7 +87,7 @@ public:
 private:
     friend class path_t;
     friend class surface_t;
-    virtual void write_to_context(detail::context_t&) const = 0;
+    virtual void apply_to_context(detail::context_t&) const = 0;
 };
 
 
@@ -151,7 +151,7 @@ public:
     {}
 
 private:
-    void write_to_context(detail::context_t&) const override;
+    void apply_to_context(detail::context_t&) const override;
 
     pos_t _start;
     pos_t _end;
@@ -167,7 +167,7 @@ public:
     {}
 
 private:
-    void write_to_context(detail::context_t&) const override;
+    void apply_to_context(detail::context_t&) const override;
 
     pos_t _corner1;
     pos_t _corner2;
@@ -185,7 +185,7 @@ public:
     {}
 
 private:
-    void write_to_context(detail::context_t&) const override;
+    void apply_to_context(detail::context_t&) const override;
 
     pos_t _center;
     double _radius;
@@ -218,11 +218,11 @@ public:
 
 private:
     // deprecated
-    void write_to_context(detail::context_t& context) const
+    void apply_to_context(detail::context_t& context) const
     {
         for (const auto& part: _parts)
         {
-            part->write_to_context(context);
+            part->apply_to_context(context);
         }
     }
 
