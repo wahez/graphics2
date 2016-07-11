@@ -11,6 +11,13 @@ namespace graphics2 {
 namespace detail {
 
 
+    struct font_face_t
+    {
+        Cairo::RefPtr<Cairo::FontFace> font_face;
+        Cairo::FontFace* operator->() { return font_face.operator->(); }
+    };
+
+
     struct surface_t
     {
         Cairo::RefPtr<Cairo::Surface> surface;
@@ -29,6 +36,33 @@ namespace detail {
     };
 
 
+}
+
+
+font_face_t::font_face_t(detail::font_face_t font_face)
+    : _font_face(new detail::font_face_t(std::move(font_face)))
+{
+}
+
+
+font_face_t::font_face_t(font_face_t&& other)
+    : _font_face(std::move(other._font_face))
+{}
+
+
+font_face_t::~font_face_t()
+{}
+
+
+void font_face_t::apply_to_context(detail::context_t& context) const
+{
+    context->set_font_face(_font_face->font_face);
+}
+
+
+toy_font_face_t::toy_font_face_t(const std::string& family, FontSlant slant, FontWeight weight)
+    : font_face_t(detail::font_face_t{Cairo::ToyFontFace::create(family, slant, weight)})
+{
 }
 
 
@@ -70,17 +104,16 @@ void surface_t::stroke(const pen_t& pen, const path_base_t& path)
 }
 
 
-/*
 void surface_t::print(const font_t& font, const pos_t& pos, const std::string& text)
 {
     detail::context_t context(*_surface);
-    context->move_t(pos.x(), pos.y());
+    context->move_to(pos.x(), pos.y());
     const auto& color = font.color();
-    context->set_source_rgba(color().red(), color().green(), color().blue(), color().alpha());
-    font.set_to_context(context);
+    context->set_source_rgba(color.red(), color.green(), color.blue(), color.alpha());
+    font.font_face().apply_to_context(context);
+    context->set_font_size(font.size());
     context->show_text(text);
 }
-*/
 
 
 surface_t::surface_t(detail::surface_t surface)

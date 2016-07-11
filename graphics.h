@@ -9,11 +9,14 @@ namespace graphics2 {
 
 namespace detail {
     struct context_t;
+    struct font_face_t;
     struct surface_t;
 }
 
 
 using Format = Cairo::Format;
+using FontSlant = Cairo::FontSlant;
+using FontWeight = Cairo::FontWeight;
 
 
 class color_t
@@ -94,19 +97,45 @@ private:
 class font_face_t
 {
 public:
+    font_face_t(font_face_t&&);
+    virtual ~font_face_t();
+
+protected:
+    explicit font_face_t(detail::font_face_t);
+    std::unique_ptr<detail::font_face_t> _font_face;
+private:
+    friend class surface_t;
+    void apply_to_context(detail::context_t&) const;
 };
 
 
-class toy_font_face_t
+class toy_font_face_t : public font_face_t
 {
 public:
+    toy_font_face_t(const std::string& family, FontSlant, FontWeight);
 };
 
 
 class font_t
 {
 public:
-    font_t(font_face_t, color_t, double size);
+    template<typename FontFace>
+    font_t(FontFace&& font_face, color_t color, double size)
+        : _font_face(new std::decay_t<FontFace>(std::forward<FontFace>(font_face)))
+        , _color(std::move(color))
+        , _size(size)
+    {}
+
+    const color_t& color() const { return _color; }
+    double size() const { return _size; }
+    const font_face_t& font_face() const { return *_font_face; }
+    void color(const color_t& color) { _color = color; }
+    void size(double s) { _size = s; }
+
+private:
+    std::unique_ptr<font_face_t> _font_face;
+    color_t _color;
+    double _size;
 };
 
 
